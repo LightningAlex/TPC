@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "TPCombat",
+	"Description": "This plugin will enable you to create a third person, action RPG combat system similar to games like Bloodborne.",
+	"Category": "ThirdPerson",
+	"CreatedBy": "Nedim Halilovic",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "TPCombat",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
