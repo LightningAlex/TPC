@@ -236,6 +236,14 @@ void UTPCombatComponent::TakeHit(float InDamage, float InForce, FVector InForceD
 
 bool UTPCombatComponent::CanUseAbility(TSubclassOf<UTPAbility> TriedAbilityClass)
 {
+	/*If bComboWindowOpen is true, CurrentlyUsedAbility MUST NOT be a nullptr. If it is, it's a bug and something needs to be fixed.*/
+	if (bComboWindowOpen &&
+		CurrentlyUsedAbility->ComboAbilityClass.GetDefaultObject()->AbilityComboTag == TriedAbilityClass.GetDefaultObject()->AbilityComboTag &&
+		CurrentlyUsedAbility->ComboAbilityClass->IsValidLowLevel())
+	{
+		TriedAbilityClass = CurrentlyUsedAbility->ComboAbilityClass;
+	}
+
 	if (bCanUseAbilityInGeneral && !bIsParry && !bIsBreak && TriedAbilityClass.GetDefaultObject()->AbilityHealthCost < GetCurrentHealth() &&
 		TriedAbilityClass.GetDefaultObject()->AbilityManaCost < GetCurrentMana() && !CharOwner->IsRagdoll() &&
 		TriedAbilityClass.GetDefaultObject()->AbilityStaminaCost < GetCurrentStamina() && !CharOwner->IsRecoveringFromRagdoll() &&
@@ -248,12 +256,9 @@ bool UTPCombatComponent::CanUseAbility(TSubclassOf<UTPAbility> TriedAbilityClass
 				/*Check for chain/combo*/
 				if (bComboWindowOpen)
 				{
-					if (CurrentlyUsedAbility->ComboAbilityClass->IsValidLowLevel() &&
-						CurrentlyUsedAbility->ComboAbilityClass.GetDefaultObject()->AbilityComboTag == TriedAbilityClass.GetDefaultObject()->AbilityComboTag)
-					{
-						bComboNext = true;
-						return true;
-					}
+					/*Other checks, such as the equality of the tag and the existence of the combo ability are done above*/
+					bComboNext = true;
+					return true;
 				}
 				if (UsableChainAbilities.Num() > 0)
 				{
@@ -280,9 +285,6 @@ void UTPCombatComponent::TryUseAbility(TSubclassOf<UTPAbility> UsedAbilityClass)
 	bComboNext = false;
 	UAnimMontage* UsedAbilityMontage = CurrentlyUsedAbility->GetAbilityMontage(this);
 	check (UsedAbilityMontage);
-
-	if (bComboWindowOpen) { bComboWindowOpen = false; }
-	if (UsableChainAbilities.Num() > 0) { UsableChainAbilities.Reset(); }
 
 	AbilityMontageEndDel.BindUObject(this, &UTPCombatComponent::OnAbilityMontageEnd);
 	CharOwner->GetMesh()->GetAnimInstance()->Montage_Play(UsedAbilityMontage, 1.f, EMontagePlayReturnType::MontageLength, NextAbilityStartTime);
@@ -372,6 +374,9 @@ ATPEquipmentBase* UTPCombatComponent::GetEquippedItem(const FName& EquipSlot)
 
 void UTPCombatComponent::OnAbilityMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
+	if (bComboWindowOpen) { bComboWindowOpen = false; }
+	if (UsableChainAbilities.Num() > 0) { UsableChainAbilities.Reset(); }
+
 	/*This function is structured like this because `CurrentlyUsedAbility` cannot be used to call events on it. Animations can be interrupted*/
 	/*when other abilities are used, and when that happens, CurrentlyUsedAbility (which is set as soon as the new one starts)*/
 	/*isn't necessarily the same ability whose animation ended. */
