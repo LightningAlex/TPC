@@ -19,13 +19,13 @@ class TPCOMBAT_API UTPAbility : public UObject
 	
 public:
 	/*Used for comparisons*/
-	UPROPERTY(EditDefaultsOnly, Category = "Name")
+	UPROPERTY(EditDefaultsOnly, Category = "Ability Data")
 	FName AbilityName;
 	/*Used for UI*/
-	UPROPERTY(EditDefaultsOnly, Category = "Name")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability Data")
 	FText AbilityDisplayName;
 	/*Used for UI*/
-	UPROPERTY(EditDefaultsOnly, Category = "Name")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability Data")
 	FText AbilityDisplayDescription;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Costs")
@@ -41,6 +41,8 @@ public:
 	bool bCanBeUsedInAir;
 	UPROPERTY(EditDefaultsOnly, Category = "Usage")
 	bool bCanAbilityTick;
+	UPROPERTY(EditDefaultsOnly, Category = "Usage")
+	float AbilityCooldownDuration;
 
 	UPROPERTY(EditDefaultsOnly, Category = "ComboChain")
 	FGameplayTag AbilityComboTag;

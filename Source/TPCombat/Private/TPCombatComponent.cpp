@@ -303,6 +303,8 @@ void UTPCombatComponent::TryUseAbility(TSubclassOf<UTPAbility> UsedAbilityClass)
 		ChangeStamina(CurrentlyUsedAbility->AbilityStaminaCost);
 	}
 	UsedAbilities.Add(UsedAbilityMontage, CurrentlyUsedAbility);
+
+	if (CurrentlyUsedAbility->AbilityCooldownDuration > 0.f) { AbilitiesOnCooldown.Add(FAbilityCooldown(CurrentlyUsedAbility->AbilityName, CurrentlyUsedAbility->AbilityCooldownDuration)); }
 }
 
 void UTPCombatComponent::EquipItem(TSubclassOf<ATPEquipmentBase> EquipClass, const FName& EquipSlot)
