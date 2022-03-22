@@ -370,6 +370,9 @@ ATPEquipmentBase* UTPCombatComponent::GetEquippedItem(const FName& EquipSlot)
 
 void UTPCombatComponent::OnAbilityMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
+	/*This function is structured like this because `CurrentlyUsedAbility` cannot be used to call events on it. Animations can be interrupted*/
+	/*when other abilities are used, and when that happens, CurrentlyUsedAbility (which is set as soon as the new one starts)*/
+	/*isn't necessarily the same ability whose animation ended. */
 	UTPAbility** EndingAbility = UsedAbilities.Find(Montage);
 	if (EndingAbility)
 	{

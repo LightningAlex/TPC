@@ -35,17 +35,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Costs")
 	float AbilityStaminaCost;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	float AbilityBaseDamage;
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	float AbilityBaseForce;
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	EAttackType AbilityAttackType;
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	EMagicElementType AbilityElementType;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Usage")
-	TArray<UAnimMontage*> AbilityAnimations;
 	UPROPERTY(EditDefaultsOnly, Category = "Usage")
 	float MovementSpeedMultiplier;
 	UPROPERTY(EditDefaultsOnly, Category = "Usage")
@@ -71,11 +60,11 @@ public:
 	void AbilityEnd();
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void AbilityNotify();
+	void AbilityNotify(int32 NotifyIndex);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void AbilityInterrupted();
 
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(BlueprintImplementableEvent)
 	UAnimMontage* GetAbilityMontage(UTPCombatComponent* UsedCC);
 };

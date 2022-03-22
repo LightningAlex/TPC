@@ -189,6 +189,9 @@ public:
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE bool IsBroken() const { return bIsBreak; }
 
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE UTPAbility* GetCurrentAbility() { return CurrentlyUsedAbility; }
+
 #if WITH_EDITORONLY_DATA
 	UFUNCTION(BlueprintCallable)
 	void DebugPrintUsableChains() const;
