@@ -9,10 +9,10 @@
 #include "Animation/AnimMontage.h"
 #include "DamagedBone.h"
 #include "AbilityCooldown.h"
+#include "ChainAbilityData.h"
 #include "TPCombatComponent.generated.h"
 
 class UCurveFloat;
-class UTPAbility;
 class ATPCharacter;
 class ATPEquipmentBase;
 
@@ -62,7 +62,7 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool bComboWindowOpen;
 	UPROPERTY(BlueprintReadWrite)
-	TArray<FName> UsableChainAbilities;
+	TArray<FChainAbilityData> UsableChainAbilities;
 
 	/*Delegates*/
 	UPROPERTY(BlueprintAssignable)
@@ -191,11 +191,6 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE UTPAbility* GetCurrentAbility() { return CurrentlyUsedAbility; }
-
-#if WITH_EDITORONLY_DATA
-	UFUNCTION(BlueprintCallable)
-	void DebugPrintUsableChains() const;
-#endif
 
 protected:
 	virtual void BeginPlay() override;

@@ -11,6 +11,11 @@
 #include "TPArmorBase.h"
 #include "TPWeaponBase.h"
 
+bool FChainAbilityData::operator==(const FChainAbilityData& rhs) const
+{
+	return ChainAbilityClass == rhs.ChainAbilityClass;
+}
+
 UTPCombatComponent::UTPCombatComponent()
 	:BaseValues{10.f, 10.f, 10.f, 10.f, 10.f, 10.f, 10.f, 10.f},
 	KnockbackForceReductionRate(15.f),
@@ -23,20 +28,6 @@ UTPCombatComponent::UTPCombatComponent()
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 
 }
-
-#if WITH_EDITORONLY_DATA
-void UTPCombatComponent::DebugPrintUsableChains() const
-{
-	FString FinalString;
-	for (const FName& ObservedAbility : UsableChainAbilities)
-	{
-		FinalString.Append(ObservedAbility.ToString());
-		FinalString.Append(FString(", "));
-	}
-
-	UE_LOG(LogTemp, Log, TEXT("Usable chains: %s"), *FinalString);
-}
-#endif
 
 void UTPCombatComponent::BeginPlay()
 {
@@ -237,11 +228,13 @@ void UTPCombatComponent::TakeHit(float InDamage, float InForce, FVector InForceD
 bool UTPCombatComponent::CanUseAbility(TSubclassOf<UTPAbility> TriedAbilityClass)
 {
 	/*If bComboWindowOpen is true, CurrentlyUsedAbility MUST NOT be a nullptr. If it is, it's a bug and something needs to be fixed.*/
+	bool ComboPassesCheck = false;
 	if (bComboWindowOpen &&
-		CurrentlyUsedAbility->ComboAbilityClass.GetDefaultObject()->AbilityComboTag == TriedAbilityClass.GetDefaultObject()->AbilityComboTag &&
+		CurrentlyUsedAbility->ComboAbilityClass.GetDefaultObject()->AbilityComboTag.MatchesTagExact(TriedAbilityClass.GetDefaultObject()->AbilityComboTag) &&
 		CurrentlyUsedAbility->ComboAbilityClass->IsValidLowLevel())
 	{
 		TriedAbilityClass = CurrentlyUsedAbility->ComboAbilityClass;
+		ComboPassesCheck = true;
 	}
 
 	if (bCanUseAbilityInGeneral && !bIsParry && !bIsBreak && TriedAbilityClass.GetDefaultObject()->AbilityHealthCost < GetCurrentHealth() &&
@@ -254,7 +247,7 @@ bool UTPCombatComponent::CanUseAbility(TSubclassOf<UTPAbility> TriedAbilityClass
 			if (CurrentlyUsedAbility)
 			{
 				/*Check for chain/combo*/
-				if (bComboWindowOpen)
+				if (ComboPassesCheck)
 				{
 					/*Other checks, such as the equality of the tag and the existence of the combo ability are done above*/
 					bComboNext = true;
@@ -262,10 +255,18 @@ bool UTPCombatComponent::CanUseAbility(TSubclassOf<UTPAbility> TriedAbilityClass
 				}
 				if (UsableChainAbilities.Num() > 0)
 				{
-					int32 FoundChainAbilityIndex = CurrentlyUsedAbility->ChainAbilities.Find(FChainAbilityData(TriedAbilityClass));
-					if (FoundChainAbilityIndex > -1 && UsableChainAbilities.Contains(CurrentlyUsedAbility->ChainAbilities[FoundChainAbilityIndex].ChainAbilityClass.GetDefaultObject()->AbilityName))
+					int32 FoundChainAbilityIndex = -1; 
+					for (int32 i = 0; i < UsableChainAbilities.Num(); i++)
 					{
-						NextAbilityStartTime = CurrentlyUsedAbility->ChainAbilities[FoundChainAbilityIndex].ChainAbilityStartTime;
+						if (UsableChainAbilities[i].ChainAbilityClass == TriedAbilityClass)
+						{
+							FoundChainAbilityIndex = i;
+							break;
+						}
+					}
+					if (FoundChainAbilityIndex > -1)
+					{
+						NextAbilityStartTime = UsableChainAbilities[FoundChainAbilityIndex].ChainAbilityStartTime;
 						return true;
 					}
 				}
@@ -375,7 +376,7 @@ ATPEquipmentBase* UTPCombatComponent::GetEquippedItem(const FName& EquipSlot)
 void UTPCombatComponent::OnAbilityMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
 	if (bComboWindowOpen) { bComboWindowOpen = false; }
-	if (UsableChainAbilities.Num() > 0) { UsableChainAbilities.Reset(); }
+	//if (UsableChainAbilities.Num() > 0) { UsableChainAbilities.Reset(); }
 
 	/*This function is structured like this because `CurrentlyUsedAbility` cannot be used to call events on it. Animations can be interrupted*/
 	/*when other abilities are used, and when that happens, CurrentlyUsedAbility (which is set as soon as the new one starts)*/

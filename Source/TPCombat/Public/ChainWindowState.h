@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
+#include "ChainAbilityData.h"
 #include "ChainWindowState.generated.h"
 
 /**
@@ -16,7 +17,7 @@ class TPCOMBAT_API UChainWindowState : public UAnimNotifyState
 	
 public:
 	UPROPERTY(EditAnywhere)
-	TArray<FName> UsableChains;
+	TArray<FChainAbilityData> UsableChains;
 
 public:
 	virtual void NotifyBegin(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;

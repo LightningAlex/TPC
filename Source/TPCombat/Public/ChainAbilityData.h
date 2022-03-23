@@ -15,19 +15,11 @@ public:
 	{
 	}
 
-	FChainAbilityData(TSubclassOf<UTPAbility>& InChainAbilityClass)
-		:ChainAbilityClass(InChainAbilityClass)
-	{
-	}
-
 public:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UTPAbility> ChainAbilityClass;
 	UPROPERTY(EditDefaultsOnly)
 	float ChainAbilityStartTime;
 
-	bool operator==(const FChainAbilityData& rhs) const
-	{
-		return ChainAbilityClass == rhs.ChainAbilityClass;
-	}
+	bool operator==(const FChainAbilityData& rhs) const;
 };

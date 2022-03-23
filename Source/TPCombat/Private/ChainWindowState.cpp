@@ -16,7 +16,6 @@ void UChainWindowState::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSeque
 		if (OwnerCombat)
 		{
 			OwnerCombat->UsableChainAbilities.Append(UsableChains);
-			OwnerCombat->DebugPrintUsableChains();
 		}
 	}
 }
@@ -37,7 +36,6 @@ void UChainWindowState::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenc
 					OwnerCombat->UsableChainAbilities.RemoveAt(i);
 				}
 			}
-			OwnerCombat->DebugPrintUsableChains();
 		}
 	}
 }

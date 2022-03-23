@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "ChainAbilityData.h"
 #include "TPAttackValues.h"
 #include "GameplayTagContainer.h"
 #include "TPAbility.generated.h"
@@ -44,12 +43,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Usage")
 	float AbilityCooldownDuration;
 
-	UPROPERTY(EditDefaultsOnly, Category = "ComboChain")
+	UPROPERTY(EditDefaultsOnly, Category = "Combo")
 	FGameplayTag AbilityComboTag;
-	UPROPERTY(EditDefaultsOnly, Category = "ComboChain")
+	UPROPERTY(EditDefaultsOnly, Category = "Combo")
 	TSubclassOf<UTPAbility> ComboAbilityClass;
-	UPROPERTY(EditDefaultsOnly, Category = "ComboChain")
-	TArray<FChainAbilityData> ChainAbilities;
 
 public:
 	UFUNCTION(BlueprintImplementableEvent)
