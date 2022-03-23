@@ -135,10 +135,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ChangeStamina(float InChange, bool bReplace = false, bool bBroadcast = true);
 
-	UFUNCTION(BlueprintPure)
-	bool CanUseAbility(TSubclassOf<UTPAbility> TriedAbilityClass);
 	UFUNCTION(BlueprintCallable)
-	void TryUseAbility(TSubclassOf<UTPAbility> UsedAbilityClass);
+	bool TryUseAbility(TSubclassOf<UTPAbility> UsedAbilityClass);
 
 	UFUNCTION(BlueprintCallable)
 	void EquipItem(TSubclassOf<ATPEquipmentBase> EquipClass, const FName& EquipSlot);
@@ -197,9 +195,11 @@ protected:
 
 private:
 	void SetCurrentValues();
+	bool CanUseAbility(TSubclassOf<UTPAbility> TriedAbilityClass);
 	void OnAbilityMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 	void OnParryMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 	void OnBreakMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 	void EndAbilityState(UTPAbility* InAbility, bool bInterrupted);
 	void UnequipItem(ATPEquipmentBase*& ItemToUnequip);
+
 };

@@ -225,89 +225,40 @@ void UTPCombatComponent::TakeHit(float InDamage, float InForce, FVector InForceD
 	}
 }
 
-bool UTPCombatComponent::CanUseAbility(TSubclassOf<UTPAbility> TriedAbilityClass)
+bool UTPCombatComponent::TryUseAbility(TSubclassOf<UTPAbility> UsedAbilityClass)
 {
-	/*If bComboWindowOpen is true, CurrentlyUsedAbility MUST NOT be a nullptr. If it is, it's a bug and something needs to be fixed.*/
-	bool ComboPassesCheck = false;
-	if (bComboWindowOpen &&
-		CurrentlyUsedAbility->ComboAbilityClass.GetDefaultObject()->AbilityComboTag.MatchesTagExact(TriedAbilityClass.GetDefaultObject()->AbilityComboTag) &&
-		CurrentlyUsedAbility->ComboAbilityClass->IsValidLowLevel())
+	if (CanUseAbility(UsedAbilityClass))
 	{
-		TriedAbilityClass = CurrentlyUsedAbility->ComboAbilityClass;
-		ComboPassesCheck = true;
-	}
+		CurrentlyUsedAbility = NewObject<UTPAbility>(this, bComboNext ? CurrentlyUsedAbility->ComboAbilityClass : UsedAbilityClass, NAME_None);
+		bComboNext = false;
+		UAnimMontage* UsedAbilityMontage = CurrentlyUsedAbility->GetAbilityMontage(this);
+		check(UsedAbilityMontage);
 
-	if (bCanUseAbilityInGeneral && !bIsParry && !bIsBreak && TriedAbilityClass.GetDefaultObject()->AbilityHealthCost < GetCurrentHealth() &&
-		TriedAbilityClass.GetDefaultObject()->AbilityManaCost < GetCurrentMana() && !CharOwner->IsRagdoll() &&
-		TriedAbilityClass.GetDefaultObject()->AbilityStaminaCost < GetCurrentStamina() && !CharOwner->IsRecoveringFromRagdoll() &&
-		!AbilitiesOnCooldown.Contains(FAbilityCooldown(TriedAbilityClass.GetDefaultObject()->AbilityName)))
-	{
-		if (!CharOwner->GetTPCharacterMovement()->IsFalling() || TriedAbilityClass.GetDefaultObject()->bCanBeUsedInAir)
+		AbilityMontageEndDel.BindUObject(this, &UTPCombatComponent::OnAbilityMontageEnd);
+		CharOwner->GetMesh()->GetAnimInstance()->Montage_Play(UsedAbilityMontage, 1.f, EMontagePlayReturnType::MontageLength, NextAbilityStartTime);
+		NextAbilityStartTime = 0.f;
+		CharOwner->GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(AbilityMontageEndDel, UsedAbilityMontage);
+		CurrentlyUsedAbility->AbilityStart();
+		CharOwner->GetTPCharacterMovement()->SetMaxMovementMultiplier(CurrentlyUsedAbility->MovementSpeedMultiplier);
+		if (CurrentlyUsedAbility->AbilityHealthCost > 0.f)
 		{
-			if (CurrentlyUsedAbility)
-			{
-				/*Check for chain/combo*/
-				if (ComboPassesCheck)
-				{
-					/*Other checks, such as the equality of the tag and the existence of the combo ability are done above*/
-					bComboNext = true;
-					return true;
-				}
-				if (UsableChainAbilities.Num() > 0)
-				{
-					int32 FoundChainAbilityIndex = -1; 
-					for (int32 i = 0; i < UsableChainAbilities.Num(); i++)
-					{
-						if (UsableChainAbilities[i].ChainAbilityClass == TriedAbilityClass)
-						{
-							FoundChainAbilityIndex = i;
-							break;
-						}
-					}
-					if (FoundChainAbilityIndex > -1)
-					{
-						NextAbilityStartTime = UsableChainAbilities[FoundChainAbilityIndex].ChainAbilityStartTime;
-						return true;
-					}
-				}
-			}
-			else
-			{
-				return true;
-			}
+			ChangeHealth(CurrentlyUsedAbility->AbilityHealthCost * (-1.f));
 		}
+		if (CurrentlyUsedAbility->AbilityManaCost > 0.f)
+		{
+			ChangeMana(CurrentlyUsedAbility->AbilityManaCost);
+		}
+		if (CurrentlyUsedAbility->AbilityStaminaCost > 0.f)
+		{
+			ChangeStamina(CurrentlyUsedAbility->AbilityStaminaCost);
+		}
+		UsedAbilities.Add(UsedAbilityMontage, CurrentlyUsedAbility);
+
+		if (CurrentlyUsedAbility->AbilityCooldownDuration > 0.f) { AbilitiesOnCooldown.Add(FAbilityCooldown(CurrentlyUsedAbility->AbilityName, CurrentlyUsedAbility->AbilityCooldownDuration)); }
+
+		return true;
 	}
 	return false;
-}
-
-void UTPCombatComponent::TryUseAbility(TSubclassOf<UTPAbility> UsedAbilityClass)
-{
-	CurrentlyUsedAbility = NewObject<UTPAbility>(this, bComboNext ? CurrentlyUsedAbility->ComboAbilityClass : UsedAbilityClass, NAME_None);
-	bComboNext = false;
-	UAnimMontage* UsedAbilityMontage = CurrentlyUsedAbility->GetAbilityMontage(this);
-	check (UsedAbilityMontage);
-
-	AbilityMontageEndDel.BindUObject(this, &UTPCombatComponent::OnAbilityMontageEnd);
-	CharOwner->GetMesh()->GetAnimInstance()->Montage_Play(UsedAbilityMontage, 1.f, EMontagePlayReturnType::MontageLength, NextAbilityStartTime);
-	NextAbilityStartTime = 0.f;
-	CharOwner->GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(AbilityMontageEndDel, UsedAbilityMontage);
-	CurrentlyUsedAbility->AbilityStart();
-	CharOwner->GetTPCharacterMovement()->SetMaxMovementMultiplier(CurrentlyUsedAbility->MovementSpeedMultiplier);
-	if (CurrentlyUsedAbility->AbilityHealthCost > 0.f)
-	{
-		ChangeHealth(CurrentlyUsedAbility->AbilityHealthCost * (-1.f));
-	}
-	if (CurrentlyUsedAbility->AbilityManaCost > 0.f)
-	{
-		ChangeMana(CurrentlyUsedAbility->AbilityManaCost);
-	}
-	if (CurrentlyUsedAbility->AbilityStaminaCost > 0.f)
-	{
-		ChangeStamina(CurrentlyUsedAbility->AbilityStaminaCost);
-	}
-	UsedAbilities.Add(UsedAbilityMontage, CurrentlyUsedAbility);
-
-	if (CurrentlyUsedAbility->AbilityCooldownDuration > 0.f) { AbilitiesOnCooldown.Add(FAbilityCooldown(CurrentlyUsedAbility->AbilityName, CurrentlyUsedAbility->AbilityCooldownDuration)); }
 }
 
 void UTPCombatComponent::EquipItem(TSubclassOf<ATPEquipmentBase> EquipClass, const FName& EquipSlot)
@@ -373,10 +324,65 @@ ATPEquipmentBase* UTPCombatComponent::GetEquippedItem(const FName& EquipSlot)
 	return nullptr;
 }
 
+bool UTPCombatComponent::CanUseAbility(TSubclassOf<UTPAbility> TriedAbilityClass)
+{
+	/*If bComboWindowOpen is true, CurrentlyUsedAbility MUST NOT be a nullptr. If it is, it's a bug and something needs to be fixed.*/
+	bool ComboPassesCheck = false;
+	if (bComboWindowOpen &&
+		CurrentlyUsedAbility->ComboAbilityClass.GetDefaultObject()->AbilityComboTag.MatchesTagExact(TriedAbilityClass.GetDefaultObject()->AbilityComboTag) &&
+		CurrentlyUsedAbility->ComboAbilityClass->IsValidLowLevel())
+	{
+		TriedAbilityClass = CurrentlyUsedAbility->ComboAbilityClass;
+		ComboPassesCheck = true;
+	}
+
+	if (bCanUseAbilityInGeneral && !bIsParry && !bIsBreak && TriedAbilityClass.GetDefaultObject()->AbilityHealthCost < GetCurrentHealth() &&
+		TriedAbilityClass.GetDefaultObject()->AbilityManaCost < GetCurrentMana() && !CharOwner->IsRagdoll() &&
+		TriedAbilityClass.GetDefaultObject()->AbilityStaminaCost < GetCurrentStamina() && !CharOwner->IsRecoveringFromRagdoll() &&
+		!AbilitiesOnCooldown.Contains(FAbilityCooldown(TriedAbilityClass.GetDefaultObject()->AbilityName)))
+	{
+		if (!CharOwner->GetTPCharacterMovement()->IsFalling() || TriedAbilityClass.GetDefaultObject()->bCanBeUsedInAir)
+		{
+			if (CurrentlyUsedAbility)
+			{
+				/*Check for chain/combo*/
+				if (ComboPassesCheck)
+				{
+					/*Other checks, such as the equality of the tag and the existence of the combo ability are done above*/
+					bComboNext = true;
+					return true;
+				}
+				if (UsableChainAbilities.Num() > 0)
+				{
+					int32 FoundChainAbilityIndex = -1;
+					for (int32 i = 0; i < UsableChainAbilities.Num(); i++)
+					{
+						if (UsableChainAbilities[i].ChainAbilityClass == TriedAbilityClass)
+						{
+							FoundChainAbilityIndex = i;
+							break;
+						}
+					}
+					if (FoundChainAbilityIndex > -1)
+					{
+						NextAbilityStartTime = UsableChainAbilities[FoundChainAbilityIndex].ChainAbilityStartTime;
+						return true;
+					}
+				}
+			}
+			else
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 void UTPCombatComponent::OnAbilityMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
 	if (bComboWindowOpen) { bComboWindowOpen = false; }
-	//if (UsableChainAbilities.Num() > 0) { UsableChainAbilities.Reset(); }
+	if (UsableChainAbilities.Num() > 0) { UsableChainAbilities.Reset(); }
 
 	/*This function is structured like this because `CurrentlyUsedAbility` cannot be used to call events on it. Animations can be interrupted*/
 	/*when other abilities are used, and when that happens, CurrentlyUsedAbility (which is set as soon as the new one starts)*/
