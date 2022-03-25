@@ -2,6 +2,7 @@
 #include "CoreMinimal.h"
 #include "TPArmorType.generated.h"
 
+/*Deprecated, can be deleted*/
 UENUM(BlueprintType)
 enum class EArmorType : uint8
 {

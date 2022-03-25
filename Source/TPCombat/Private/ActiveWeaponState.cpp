@@ -16,14 +16,10 @@ void UActiveWeaponState::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequ
 		UTPCombatComponent* OwnerCombat = Cast<UTPCombatComponent>(MeshComp->GetOwner()->GetComponentByClass(UTPCombatComponent::StaticClass()));
 		if (OwnerCombat)
 		{
-			ATPEquipmentBase** PotentialEquipment = OwnerCombat->CharacterEquipment.Find(SocketToActivate);
-			if (PotentialEquipment && *PotentialEquipment)
+			ATPWeaponBase* PotentialWeapon = Cast<ATPWeaponBase>(OwnerCombat->GetEquippedItem(SocketToActivate));
+			if (PotentialWeapon)
 			{
-				ATPWeaponBase* PotentialWeapon = Cast<ATPWeaponBase>(*PotentialEquipment);
-				if (PotentialWeapon)
-				{
-					PotentialWeapon->ActivateWeapon(CollidersToActivate, WeaponAttackType);
-				}
+				PotentialWeapon->ActivateWeapon(CollidersToActivate, WeaponAttackType);
 			}
 		}
 	}
@@ -37,14 +33,10 @@ void UActiveWeaponState::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequen
 		UTPCombatComponent* OwnerCombat = Cast<UTPCombatComponent>(MeshComp->GetOwner()->GetComponentByClass(UTPCombatComponent::StaticClass()));
 		if (OwnerCombat)
 		{
-			ATPEquipmentBase** PotentialEquipment = OwnerCombat->CharacterEquipment.Find(SocketToActivate);
-			if (PotentialEquipment && *PotentialEquipment)
+			ATPWeaponBase* PotentialWeapon = Cast<ATPWeaponBase>(OwnerCombat->GetEquippedItem(SocketToActivate));
+			if (PotentialWeapon)
 			{
-				ATPWeaponBase* PotentialWeapon = Cast<ATPWeaponBase>(*PotentialEquipment);
-				if (PotentialWeapon)
-				{
-					PotentialWeapon->DeactivateWeapon();
-				}
+				PotentialWeapon->DeactivateWeapon();
 			}
 		}
 	}

@@ -20,11 +20,6 @@ public:
 	USkeletalMeshComponent* ArmorMesh;
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	EArmorType ArmorType;
-
-public:
 	ATPArmorBase();
-	UFUNCTION(BlueprintPure)
-	bool ShouldSetMasterComponent() const;
+
 };

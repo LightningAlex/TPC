@@ -1,11 +1,11 @@
 # Abilities
 
 ## Definition
-An ability consists of an animation (montage), various different events and stats typically used in combat. Abilities are the core of the combat system. A character can use only one ability at a time!
+An ability consists of an animation (montage), various different events and stats typically used in combat. Abilities are the core of the combat system.
 
 ## Functionality details
 ### Code structure
-The base class for abilities is `UTPAbility`, which inherits from `UObject` (might be changed to `AActor` later for replication purposes).  The base class contains variables used for any ability, as well as some optional ones. Each ability is supposed to be a blueprint which inherits from this base class.
+The base class for abilities is `UTPAbility`, which inherits from `UObject` (might be changed to `AActor` later for replication purposes).  The base class contains variables used for any ability. Each ability is supposed to be a blueprint which inherits from this base class.
 
 ### Ability animations
 Each ability must play an animation. The played animation is determined by the following function: 
@@ -15,7 +15,7 @@ In most cases, the overridden function will consists only of a return node, retu
 
 >COMPLEX EXAMPLE: Imagine an ability called "right hand attack". As its name suggests, this ability would have the character perform a simple attack with the armament in their right hand. However, the animation side of things isn't that simple - it would depend on the armament. Hence, the function would search for the armament type (via equipment in the passed combat component) and return an animation based on that type.
 
-> NOTE: Animationless abilities are planned for the future
+> NOTE: Animationless abilities are planned for the future!
 
 ### Ability events
 Every ability can fire off the following events:
@@ -48,32 +48,39 @@ All listed variables are editable per individual ability.
 
 ### Ability Name
 **Type:** FName;
+
 **Usage:** Used to compare ability objects, and to search for abilities. Should be unique;
 > Example: When trying to use an ability, the system iterates through all abilities currently on cooldown and compares their names to the name of the tried ability. If the tried ability is found in the cooldown list, it can't be used.
 
 ### Ability Display Name
 **Type:** FText;
+
 **Usage:** Isn't used for anything in code. It's blueprint readable and meant to be used as a display name in UI;
 
 ### Ability Display Description
 **Type:** FText;
+
 **Usage:** Isn't used for anything in code. It's blueprint readable and meant to be used as a description in UI;
 
 ### Ability Health Cost
 **Type:** Float;
+
 **Usage:** Reduces the health of the character using the ability by the amount stored in this variable. If the character doesn't have enough health, the ability isn't usable;
 
 ### Ability Mana Cost
 **Type:** Float;
+
 **Usage:** Reduces the mana of the character using this ability by the amount stored in this variable. if the character doesn't have enough mana, the ability isn't usable;
 
 ### Ability Stamina Cost
 **Type:** Float;
+
 **Usage:** Reduces the stamina of the character using this ability by the amount stored in this variable. If the character doesn't have enough stamina, the ability isn't usable;
 >NOTE: This might be changed so the character can use the ability if they don't have enough stamina - using the ability will simply take away all remaining stamina (like in Dark Souls). Best to code in both scenarios and expose the option of which one to use in developer settings.
 
 ### Movement Speed Multiplier
 **Type:** Float;
+
 **Usage:** Multiplies the current maximum speed of the character by this value;
 
 ### Can Be Used In Air
@@ -82,18 +89,22 @@ All listed variables are editable per individual ability.
 
 ### Can Ability Tick
 **Type:** Bool;
+
 **Usage:** Determines whether the ability can tick, i.e. whether `AbilityTick(float XDeltaTime)` should be called every frame or not;
 
 ### Ability Cooldown Duration
 **Type:** Float;
+
 **Usage:** Determines how long the cooldown of this ability is, i.e. how much time needs to pass for this ability to be usable again;
 
 ### Ability Combo Tag
 **Type:** FGameplayTag;
+
 **Usage:** Used to check for potential combos. All abilities that are part of the same combo chain should share the same tag (see more in the combo system section);
 
 ### Combo Ability Class
 **Type:** TSubclassOf;
+
 **Usage:** If a combo is performed, the ability stored here will be used (see more in the combo system section);
 
 ## Using abilities

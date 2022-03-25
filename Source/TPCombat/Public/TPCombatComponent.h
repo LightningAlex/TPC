@@ -10,11 +10,13 @@
 #include "DamagedBone.h"
 #include "AbilityCooldown.h"
 #include "ChainAbilityData.h"
+#include "EquipmentSlot.h"
 #include "TPCombatComponent.generated.h"
 
 class UCurveFloat;
 class ATPCharacter;
 class ATPEquipmentBase;
+class USkeletalMeshComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnEquipmentOff, FName, UnequippedSocket, UTPCombatComponent*, UnequippedCombat);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnEquipmentOn, ATPEquipmentBase*, EquippedItem, FName, EquippedSocket, UTPCombatComponent*, EquippedCombat);
@@ -50,7 +52,7 @@ public:
 	float MaxKnockbackDuration;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
-	TMap<FName, ATPEquipmentBase*> CharacterEquipment;
+	TArray<FEquipmentSlot> CharacterEquipmentSlots;
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bComboWindowOpen;
@@ -88,6 +90,8 @@ private:
 	ATPCharacter* CharOwner;
 	UPROPERTY(Transient)
 	TMap<UAnimMontage*, UTPAbility*> UsedAbilities;
+	UPROPERTY(Transient)
+	TMap<int32, ATPEquipmentBase*> CharEquipment;
 
 	FOnMontageEnded AbilityMontageEndDel;
 	FOnMontageEnded ParryMontageEndDel;
@@ -137,6 +141,7 @@ public:
 	void UnequipItem(const FName& UnequipSlot);
 	UFUNCTION(BlueprintPure)
 	ATPEquipmentBase* GetEquippedItem(const FName& EquipSlot);
+	USkeletalMeshComponent* GetEquipmentMesh(const FName& EquipSlot);
 
 	UFUNCTION(BlueprintCallable)
 	void SetCanUseAbilityInGeneral(bool bNewCanUse);

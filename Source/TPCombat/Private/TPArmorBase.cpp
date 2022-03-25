@@ -3,6 +3,8 @@
 
 #include "TPArmorBase.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "TPCombatComponent.h"
+#include "GameFramework/Character.h"
 
 ATPArmorBase::ATPArmorBase()
 	:Super()
@@ -11,7 +13,3 @@ ATPArmorBase::ATPArmorBase()
 	ArmorMesh->SetupAttachment(GetRootComponent());
 }
 
-bool ATPArmorBase::ShouldSetMasterComponent() const
-{
-	return (ArmorType != EArmorType::AT_NECKLACE && ArmorType != EArmorType::AT_RING);
-}
