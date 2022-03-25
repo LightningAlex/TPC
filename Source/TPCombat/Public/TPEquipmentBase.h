@@ -33,9 +33,7 @@ public:
 	ATPEquipmentBase();
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(BlueprintCallable)
 	virtual void BeEquipped(UTPCombatComponent* InCombatComponent, FName InSocketName = NAME_None);
-	UFUNCTION(BlueprintCallable)
 	virtual void BeUnequipped(UTPCombatComponent* InCombatComponent);
 
 	UFUNCTION(BlueprintImplementableEvent)

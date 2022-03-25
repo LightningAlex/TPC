@@ -35,17 +35,10 @@ public:
 	UCurveFloat* LevelExperienceCurve;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	TArray<EAttackType> AttackWeaknesses;
+	float AttackDefenses[EAttackType::MAX];
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	TArray<EAttackType> AttackResistances;
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	TArray<EAttackType> AttackImmunities;
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	TArray<EMagicElementType> ElementWeaknesses;
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	TArray<EMagicElementType> ElemetResistances;
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	TArray<EMagicElementType> ElementImmunities;
+	float MagicDefenses[EMagicElementType::MAX];
+	/*Misleading name, more accurate would be "BoneDefense". This array allows certain bones to have a higher/lower multiplier to the damage, i.e. make the head take two times the damage the torso does.*/
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	TArray<FDamagedBone> DamagedBones;
 

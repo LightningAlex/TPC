@@ -48,7 +48,13 @@ void ATPWeaponBase::BeEquipped(UTPCombatComponent* InCombatComponent, FName InSo
 
 void ATPWeaponBase::SetWeaponElementType(EMagicElementType NewElement, float NewElementDuration /*= -1.f*/)
 {
+	if (GetWorld()->GetTimerManager().IsTimerActive(ElementHandle))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(ElementHandle);
+	}
+
 	WeaponElement = NewElement;
+
 	if (NewElementDuration > 0.f)
 	{
 		GetWorld()->GetTimerManager().SetTimer(ElementHandle, this, &ATPWeaponBase::RestoreElementType, NewElementDuration, false);

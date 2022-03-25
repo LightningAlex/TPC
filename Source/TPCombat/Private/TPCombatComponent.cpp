@@ -18,6 +18,8 @@ bool FChainAbilityData::operator==(const FChainAbilityData& rhs) const
 
 UTPCombatComponent::UTPCombatComponent()
 	:BaseValues{10.f, 10.f, 10.f, 10.f, 10.f, 10.f, 10.f, 10.f},
+	AttackDefenses{1.f, 1.f, 1.f, 1.f},
+	MagicDefenses{1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f},
 	KnockbackForceReductionRate(15.f),
 	KnockbackTreshold(0.5f),
 	MaxKnockbackDuration(3.f),
@@ -131,30 +133,13 @@ void UTPCombatComponent::TakeHit(float InDamage, float InForce, FVector InForceD
 	{
 		/*CALCULATE EXACT DAMAGE*/
 		/*Check weaknesses, resistances and immunities*/
-		if (AttackImmunities.Contains(InAttackType))
-		{
-			return;
-		}
-		if (ElementImmunities.Contains(InElementType))
-		{
-			return;
-		}
-		if (AttackWeaknesses.Contains(InAttackType))
-		{
-			InDamage *= 1.5f;
-		}
-		if (ElementWeaknesses.Contains(InElementType))
-		{
-			InDamage *= 2.f;
-		}
-		if (AttackResistances.Contains(InAttackType))
-		{
-			InDamage *= 0.75f;
-		}
-		if (ElementWeaknesses.Contains(InElementType))
-		{
-			InDamage *= 0.5f;
-		}
+		const float AttackTypeDefense = AttackDefenses[static_cast<int32>(InAttackType)];
+		const float MagicTypeDefense = MagicDefenses[static_cast<int32>(InElementType)];
+		
+		if (AttackTypeDefense == 0.f || MagicTypeDefense == 0.f) { return; }
+
+		InDamage *= AttackTypeDefense;
+		InDamage *= MagicTypeDefense;
 
 		for (int32 i = 0; i < DamagedBones.Num(); i++)
 		{
