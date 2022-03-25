@@ -246,31 +246,23 @@ bool UTPCombatComponent::TryUseAbility(TSubclassOf<UTPAbility> UsedAbilityClass)
 	return false;
 }
 
-void UTPCombatComponent::EquipItem(TSubclassOf<ATPEquipmentBase> EquipClass, const FName& EquipSlot)
+void UTPCombatComponent::EquipItem(TSubclassOf<ATPEquipmentBase> EquipClass, const FName& EquipSlotName)
 {
-	int32 UsedSlotIndex = -1;
-	for (int32 i = 0; i < CharacterEquipmentSlots.Num(); ++i)
-	{
-		if (CharacterEquipmentSlots[i].EquipmentSlot == EquipSlot)
-		{
-			UsedSlotIndex = i;
-			break;
-		}
-	}
+	FEquipmentSlot* UsedSlotPtr = CharacterEquipment.Find(EquipSlotName);
 
-	if (CharacterEquipmentSlots.IsValidIndex(UsedSlotIndex))
+	if (UsedSlotPtr)
 	{
-		ATPEquipmentBase*& AlreadyEqupped = CharEquipment.FindOrAdd(UsedSlotIndex);
-		if (AlreadyEqupped) { UnequipItem(AlreadyEqupped); }
+		FEquipmentSlot& UsedSlot = *UsedSlotPtr;
+		UnequipItem(UsedSlot);
 
 		FActorSpawnParameters EquipSpawnParams;
 		EquipSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		USkeletalMeshComponent* EquipMesh = GetEquipmentMesh(EquipSlot);
+		USkeletalMeshComponent* EquipMesh = GetEquipmentMesh(EquipSlotName);
 		if (EquipMesh)
 		{
 			ATPEquipmentBase* NewEquipped = GetWorld()->SpawnActor<ATPEquipmentBase>(EquipClass,
-				EquipMesh->GetSocketTransform(CharacterEquipmentSlots[UsedSlotIndex].EquipmentSocket,
+				EquipMesh->GetSocketTransform(UsedSlot.EquipmentSocket,
 					ERelativeTransformSpace::RTS_World), EquipSpawnParams);
 
 			if (ATPArmorBase* EquipArmor = Cast<ATPArmorBase>(NewEquipped))
@@ -278,49 +270,71 @@ void UTPCombatComponent::EquipItem(TSubclassOf<ATPEquipmentBase> EquipClass, con
 				EquipArmor->ArmorMesh->SetMasterPoseComponent(EquipMesh);
 			}
 
-			NewEquipped->AttachToComponent(EquipMesh, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false), CharacterEquipmentSlots[UsedSlotIndex].EquipmentSocket);
-			NewEquipped->BeEquipped(this, CharacterEquipmentSlots[UsedSlotIndex].EquipmentSocket);
-			AlreadyEqupped = NewEquipped;
+			NewEquipped->AttachToComponent(EquipMesh, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false), UsedSlot.EquipmentSocket);
+			NewEquipped->BeEquipped(this, EquipSlotName);
+			
+			UsedSlot.EquipmentItem = NewEquipped;
 		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Trying to equip an item to a non-existing slot: %s"), *EquipSlot.ToString());
+		UE_LOG(LogTemp, Error, TEXT("Trying to equip an item to a non-existing slot: %s"), *EquipSlotName.ToString());
 	}
 }
 
-void UTPCombatComponent::UnequipItem(const FName& UnequipSlot)
+void UTPCombatComponent::UnequipItem(const FName& UnequipSlotName, bool bDestroy /*= true*/)
 {
-	ATPEquipmentBase* CurrentEquipped = GetEquippedItem(UnequipSlot);
+	ATPEquipmentBase* CurrentEquipped = GetEquippedItemBySlot(UnequipSlotName);
 	if (CurrentEquipped)
 	{
-		UnequipItem(CurrentEquipped);
+		UnequipItem(CurrentEquipped, bDestroy);
 	}
 }
 
-void UTPCombatComponent::UnequipItem(ATPEquipmentBase*& ItemToUnequip)
+void UTPCombatComponent::UnequipItem(ATPEquipmentBase* ItemToUnequip, bool bDestroy /*= true*/)
 {
 	ItemToUnequip->BeUnequipped(this);
-	ItemToUnequip->Destroy();
-	ItemToUnequip = nullptr;
-}
 
-ATPEquipmentBase* UTPCombatComponent::GetEquippedItem(const FName& EquipSlot)
-{
-	int32 UsedEquipSlot = -1;
-	for (int32 i = 0; i < CharacterEquipmentSlots.Num(); ++i)
+	for (TPair<FName, FEquipmentSlot>& ObservedPair : CharacterEquipment)
 	{
-		if (CharacterEquipmentSlots[i].EquipmentSlot == EquipSlot)
+		if (ObservedPair.Value.EquipmentItem == ItemToUnequip)
 		{
-			UsedEquipSlot = i;
+			ObservedPair.Value.EquipmentItem = nullptr;
 			break;
 		}
 	}
+	
+	if (bDestroy) { ItemToUnequip->Destroy(); }
+}
 
-	ATPEquipmentBase** CurrentEquipped = CharEquipment.Find(UsedEquipSlot);
-	if (CurrentEquipped)
+void UTPCombatComponent::UnequipItem(FEquipmentSlot& SlotToUnequip, bool bDestroy /*= true*/)
+{
+	if (SlotToUnequip.EquipmentItem)
 	{
-		return *CurrentEquipped;
+		SlotToUnequip.EquipmentItem->BeUnequipped(this);
+		if (bDestroy) { SlotToUnequip.EquipmentItem->Destroy(); }
+		SlotToUnequip.EquipmentItem = nullptr;
+	}
+}
+
+ATPEquipmentBase* UTPCombatComponent::GetEquippedItemBySlot(const FName& EquipSlotName)
+{
+	FEquipmentSlot* UsedSlotPtr = CharacterEquipment.Find(EquipSlotName);
+	if (UsedSlotPtr)
+	{
+		return UsedSlotPtr->EquipmentItem;
+	}
+	return nullptr;
+}
+
+ATPEquipmentBase* UTPCombatComponent::GetEquippedItemBySocket(const FName& EquipSocket)
+{
+	for (TPair<FName, FEquipmentSlot>& ObservedSlot : CharacterEquipment)
+	{
+		if (ObservedSlot.Value.EquipmentSocket == EquipSocket)
+		{
+			return ObservedSlot.Value.EquipmentItem;
+		}
 	}
 	return nullptr;
 }
@@ -333,7 +347,6 @@ USkeletalMeshComponent* UTPCombatComponent::GetEquipmentMesh(const FName& EquipS
 
 	ACharacter* CombatantChar = Cast<ACharacter>(GetOwner());
 	if (CombatantChar) { return CombatantChar->GetMesh(); }
-	
 	return nullptr;
 }
 
@@ -443,12 +456,12 @@ void UTPCombatComponent::SetCanUseAbilityInGeneral(bool bNewCanUse)
 	bCanUseAbilityInGeneral = bNewCanUse;
 }
 
-void UTPCombatComponent::ParryAttack(const FName& ParriedSocket, EWeaponType InWT)
+void UTPCombatComponent::ParryAttack(const FName& ParriedSlot, EWeaponType InWT)
 {
 	ATPCharacter* TPCOwner = GetOwnerAsTP();
 	check (TPCOwner);
 
-	UAnimMontage* ParryMontage = TPCOwner->GetParryMontage(ParriedSocket, InWT);
+	UAnimMontage* ParryMontage = TPCOwner->GetParryMontage(ParriedSlot, InWT);
 
 	bIsParry = true;
 	ParryMontageEndDel.BindUObject(this, &UTPCombatComponent::OnParryMontageEnd);
@@ -456,21 +469,21 @@ void UTPCombatComponent::ParryAttack(const FName& ParriedSocket, EWeaponType InW
 	TPCOwner->GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(ParryMontageEndDel, ParryMontage);
 }
 
-void UTPCombatComponent::BreakBlock(const FName& BrokenSocket, EWeaponType InWT)
+void UTPCombatComponent::BreakBlock(const FName& BrokenSlot, EWeaponType InWT)
 {
 	ATPCharacter* TPCOwner = GetOwnerAsTP();
 	check(TPCOwner);
 
-	UAnimMontage* BreakMontage = TPCOwner->GetBlockBreakMontage(BrokenSocket, InWT);
+	UAnimMontage* BreakMontage = TPCOwner->GetBlockBreakMontage(BrokenSlot, InWT);
 
 	bIsBreak = true;
 	BreakMontageEndDel.BindUObject(this, &UTPCombatComponent::OnBreakMontageEnd);
 	TPCOwner->GetMesh()->GetAnimInstance()->Montage_Play(BreakMontage);
 	TPCOwner->GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(BreakMontageEndDel, BreakMontage);
 
-	for (TPair<int32, ATPEquipmentBase*> ObservedEquipment : CharEquipment)
+	for (TPair<FName, FEquipmentSlot> ObservedEquipment : CharacterEquipment)
 	{
-		ATPWeaponBase* ObservedWeapon = Cast<ATPWeaponBase>(ObservedEquipment.Value);
+		ATPWeaponBase* ObservedWeapon = Cast<ATPWeaponBase>(ObservedEquipment.Value.EquipmentItem);
 		if (ObservedWeapon)
 		{
 			ObservedWeapon->SetWeaponBlocking(false);

@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "TPEquipmentBase.h"
-#include "TPArmorType.h"
 #include "TPArmorBase.generated.h"
 
 /**

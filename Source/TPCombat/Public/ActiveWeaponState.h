@@ -17,7 +17,7 @@ class TPCOMBAT_API UActiveWeaponState : public UAnimNotifyState
 
 public:
 	UPROPERTY(EditAnywhere)
-	FName SocketToActivate;
+	FName SlotToActivate;
 	UPROPERTY(EditAnywhere)
 	TArray<FName> CollidersToActivate;
 	UPROPERTY(EditAnywhere)

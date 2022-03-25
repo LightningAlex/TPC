@@ -16,7 +16,7 @@ void UActiveWeaponState::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequ
 		UTPCombatComponent* OwnerCombat = Cast<UTPCombatComponent>(MeshComp->GetOwner()->GetComponentByClass(UTPCombatComponent::StaticClass()));
 		if (OwnerCombat)
 		{
-			ATPWeaponBase* PotentialWeapon = Cast<ATPWeaponBase>(OwnerCombat->GetEquippedItem(SocketToActivate));
+			ATPWeaponBase* PotentialWeapon = Cast<ATPWeaponBase>(OwnerCombat->GetEquippedItemBySlot(SlotToActivate));
 			if (PotentialWeapon)
 			{
 				PotentialWeapon->ActivateWeapon(CollidersToActivate, WeaponAttackType);
@@ -33,7 +33,7 @@ void UActiveWeaponState::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequen
 		UTPCombatComponent* OwnerCombat = Cast<UTPCombatComponent>(MeshComp->GetOwner()->GetComponentByClass(UTPCombatComponent::StaticClass()));
 		if (OwnerCombat)
 		{
-			ATPWeaponBase* PotentialWeapon = Cast<ATPWeaponBase>(OwnerCombat->GetEquippedItem(SocketToActivate));
+			ATPWeaponBase* PotentialWeapon = Cast<ATPWeaponBase>(OwnerCombat->GetEquippedItemBySlot(SlotToActivate));
 			if (PotentialWeapon)
 			{
 				PotentialWeapon->DeactivateWeapon();

@@ -67,7 +67,7 @@ private:
 public:
 	ATPWeaponBase();
 	virtual void Tick(float DeltaTime) override;
-	virtual void BeEquipped(UTPCombatComponent* InCombatComponent, FName InSocketName /* = NAME_None */) override;
+	virtual void BeEquipped(UTPCombatComponent* InCombatComponent, FName InSlotName = NAME_None) override;
 
 	UFUNCTION(BlueprintCallable)
 	void SetWeaponElementType(EMagicElementType NewElement, float NewElementDuration = -1.f);

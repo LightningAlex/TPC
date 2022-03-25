@@ -52,7 +52,7 @@ public:
 	float MaxKnockbackDuration;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
-	TArray<FEquipmentSlot> CharacterEquipmentSlots;
+	TMap<FName, FEquipmentSlot> CharacterEquipment;
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bComboWindowOpen;
@@ -90,8 +90,6 @@ private:
 	ATPCharacter* CharOwner;
 	UPROPERTY(Transient)
 	TMap<UAnimMontage*, UTPAbility*> UsedAbilities;
-	UPROPERTY(Transient)
-	TMap<int32, ATPEquipmentBase*> CharEquipment;
 
 	FOnMontageEnded AbilityMontageEndDel;
 	FOnMontageEnded ParryMontageEndDel;
@@ -136,20 +134,22 @@ public:
 	bool TryUseAbility(TSubclassOf<UTPAbility> UsedAbilityClass);
 
 	UFUNCTION(BlueprintCallable)
-	void EquipItem(TSubclassOf<ATPEquipmentBase> EquipClass, const FName& EquipSlot);
+	void EquipItem(TSubclassOf<ATPEquipmentBase> EquipClass, const FName& EquipSlotName);
 	UFUNCTION(BlueprintCallable)
-	void UnequipItem(const FName& UnequipSlot);
+	void UnequipItem(const FName& UnequipSlotName, bool bDestroy = true);
 	UFUNCTION(BlueprintPure)
-	ATPEquipmentBase* GetEquippedItem(const FName& EquipSlot);
+	ATPEquipmentBase* GetEquippedItemBySlot(const FName& EquipSlotName);
+	UFUNCTION(BlueprintPure)
+	ATPEquipmentBase* GetEquippedItemBySocket(const FName& EquipSocket);
 	USkeletalMeshComponent* GetEquipmentMesh(const FName& EquipSlot);
 
 	UFUNCTION(BlueprintCallable)
 	void SetCanUseAbilityInGeneral(bool bNewCanUse);
 
 	UFUNCTION(BlueprintCallable)
-	void ParryAttack(const FName& ParriedSocket, EWeaponType InWT);
+	void ParryAttack(const FName& ParriedSlot, EWeaponType InWT);
 	UFUNCTION(BlueprintCallable)
-	void BreakBlock(const FName& BrokenSocket, EWeaponType InWT);
+	void BreakBlock(const FName& BrokenSlot, EWeaponType InWT);
 
 	/*Inlines*/
 	UFUNCTION(BlueprintPure)
@@ -198,6 +198,6 @@ private:
 	void OnParryMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 	void OnBreakMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 	void EndAbilityState(UTPAbility* InAbility, bool bInterrupted);
-	void UnequipItem(ATPEquipmentBase*& ItemToUnequip);
-
+	void UnequipItem(ATPEquipmentBase* ItemToUnequip, bool bDestroy = true);
+	void UnequipItem(FEquipmentSlot& SlotToUnequip, bool bDestroy = true);
 };

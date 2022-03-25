@@ -25,7 +25,7 @@ public:
 	float AddedValues[ECombatValue::MAX];
 
 private:
-	FName AttachedToSocket;
+	FName AttachedToSlot;
 	UPROPERTY()
 	ATPCharacter* EquipmentHolder;
 
@@ -33,11 +33,11 @@ public:
 	ATPEquipmentBase();
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void BeEquipped(UTPCombatComponent* InCombatComponent, FName InSocketName = NAME_None);
+	virtual void BeEquipped(UTPCombatComponent* InCombatComponent, FName InSlotName = NAME_None);
 	virtual void BeUnequipped(UTPCombatComponent* InCombatComponent);
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void Event_Equipped(UTPCombatComponent* InCombatComponent, FName InSocketName = NAME_None);
+	void Event_Equipped(UTPCombatComponent* InCombatComponent, FName InSlotName = NAME_None);
 	UFUNCTION(BlueprintImplementableEvent)
 	void Event_Unequipped(UTPCombatComponent* InCombatComponent);
 
@@ -45,7 +45,7 @@ public:
 	float GetAddedValue(ECombatValue SearchedValue);
 
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE FName GetAttachedToSocket() const { return AttachedToSocket; }
+	FORCEINLINE FName GetAttachedToSlot() const { return AttachedToSlot; }
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE ATPCharacter* GetEquipmentHolder() const { return EquipmentHolder; }

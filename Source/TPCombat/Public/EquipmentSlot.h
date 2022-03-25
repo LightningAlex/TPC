@@ -2,6 +2,8 @@
 #include "CoreMinimal.h"
 #include "EquipmentSlot.generated.h"
 
+class ATPEquipmentBase;
+
 USTRUCT(BlueprintType)
 struct FEquipmentSlot
 {
@@ -12,18 +14,18 @@ public:
 	{
 	}
 
-	FEquipmentSlot(const FName& InSlotName, const FName& InSocketName)
+	FEquipmentSlot(const FName& InSocketName)
 	{
-		EquipmentSlot = InSlotName;
 		EquipmentSocket = InSocketName;
 	}
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FName EquipmentSlot;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FName EquipmentSocket;
+	UPROPERTY()
+	ATPEquipmentBase* EquipmentItem;
 
 public:
-	bool operator == (const FEquipmentSlot& rhs) const { return EquipmentSlot == rhs.EquipmentSlot; }
+	/*Currently not used anywhere, as we're not comparing slots to slots*/
+	bool operator == (const FEquipmentSlot& rhs) const { return EquipmentSocket == rhs.EquipmentSocket; }
 
 };

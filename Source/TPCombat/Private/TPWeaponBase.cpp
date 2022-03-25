@@ -34,9 +34,9 @@ void ATPWeaponBase::Tick(float DeltaTime)
 	}
 }
 
-void ATPWeaponBase::BeEquipped(UTPCombatComponent* InCombatComponent, FName InSocketName /* = NAME_None */)
+void ATPWeaponBase::BeEquipped(UTPCombatComponent* InCombatComponent, FName InSlotName /*= NAME_None*/)
 {
-	Super::BeEquipped(InCombatComponent, InSocketName);
+	Super::BeEquipped(InCombatComponent, InSlotName);
 
 	for (const FWeaponCollider& ObservedCollider : WeaponColliders)
 	{
@@ -138,12 +138,12 @@ void ATPWeaponBase::OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AA
 	{
 		if (HitWeapon->WeaponTakeHit(WeaponForce))
 		{
-			GetEquipmentHolder()->TPCombatComponent->ParryAttack(GetAttachedToSocket(), WeaponType);
+			GetEquipmentHolder()->TPCombatComponent->ParryAttack(GetAttachedToSlot(), WeaponType);
 			return;
 		}
 		else
 		{
-			HitWeapon->GetEquipmentHolder()->TPCombatComponent->BreakBlock(HitWeapon->GetAttachedToSocket(), HitWeapon->WeaponType);
+			HitWeapon->GetEquipmentHolder()->TPCombatComponent->BreakBlock(HitWeapon->GetAttachedToSlot(), HitWeapon->WeaponType);
 		}
 	}
 	else if (ATPCharacter* HitChar = Cast<ATPCharacter>(OtherActor))

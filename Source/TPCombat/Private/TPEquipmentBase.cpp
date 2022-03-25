@@ -21,23 +21,25 @@ void ATPEquipmentBase::Tick(float DeltaTime)
 
 }
 
-void ATPEquipmentBase::BeEquipped(UTPCombatComponent* InCombatComponent, FName InSocketName /*= NAME_None*/)
+void ATPEquipmentBase::BeEquipped(UTPCombatComponent* InCombatComponent, FName InSlotName /*= NAME_None*/)
 {
 	for (int32 i = 0; i < static_cast<int32>(ECombatValue::MAX); i++)
 	{
 		InCombatComponent->BonusValues[i] += AddedValues[i];
 	}
-	AttachedToSocket = InSocketName;
-
+	AttachedToSlot = InSlotName;
 	EquipmentHolder = Cast<ATPCharacter>(InCombatComponent->GetOwner());
+	Event_Equipped(InCombatComponent, InSlotName);
 }
 
 void ATPEquipmentBase::BeUnequipped(UTPCombatComponent* InCombatComponent)
 {
+	AttachedToSlot = NAME_None;
 	for (int32 i = 0; i < static_cast<int32>(ECombatValue::MAX); i++)
 	{
 		InCombatComponent->BonusValues[i] -= AddedValues[i];
 	}
+	Event_Unequipped(InCombatComponent);
 }
 
 float ATPEquipmentBase::GetAddedValue(ECombatValue SearchedValue)
