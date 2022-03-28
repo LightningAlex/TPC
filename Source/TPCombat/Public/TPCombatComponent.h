@@ -141,7 +141,6 @@ public:
 	ATPEquipmentBase* GetEquippedItemBySlot(const FName& EquipSlotName);
 	UFUNCTION(BlueprintPure)
 	ATPEquipmentBase* GetEquippedItemBySocket(const FName& EquipSocket);
-	USkeletalMeshComponent* GetEquipmentMesh(const FName& EquipSlot);
 
 	UFUNCTION(BlueprintCallable)
 	void SetCanUseAbilityInGeneral(bool bNewCanUse);
@@ -177,7 +176,7 @@ public:
 	FORCEINLINE bool GetCanUseAbilityInGeneral() const { return bCanUseAbilityInGeneral; }
 
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE ATPCharacter* GetOwnerAsTP() const { return Cast<ATPCharacter>(GetOwner()); }
+	FORCEINLINE ATPCharacter* GetOwnerAsTP() const { return CharOwner; }
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE bool IsBeingParried() const { return bIsParry; }

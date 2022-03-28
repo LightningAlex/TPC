@@ -13,6 +13,7 @@ class UTPCombatComponent;
 class UCurveFloat;
 class UAnimMontage;
 class UTPAbility;
+class USkeletalMeshComponent;
 
 UCLASS()
 class TPCOMBAT_API ATPCharacter : public ACharacter
@@ -83,7 +84,7 @@ public:
 
 	/*Montage getters*/
 	UFUNCTION(BlueprintNativeEvent)
-	UAnimMontage* GetParryMontage(const FName& ParriedSocketName, EWeaponType InWT);
+	UAnimMontage* GetParryMontage(TSubclassOf<UTPAbility> ParriedAbility);
 	UFUNCTION(BlueprintNativeEvent)
 	UAnimMontage* GetBlockBreakMontage(const FName& BrokenSocketName, EWeaponType InWT);
 

@@ -123,7 +123,7 @@ void ATPCharacter::StartRagdoll(float InDuration, const FVector& InImpulseVector
 	bRagdolling = true;
 }
 
-UAnimMontage* ATPCharacter::GetParryMontage_Implementation(const FName& ParriedSocketName, EWeaponType InWT)
+UAnimMontage* ATPCharacter::GetParryMontage_Implementation(TSubclassOf<UTPAbility> ParriedAbility)
 {
 	return nullptr;
 }

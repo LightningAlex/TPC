@@ -132,7 +132,6 @@ void UTPCombatComponent::TakeHit(float InDamage, float InForce, FVector InForceD
 	if (InDamage > 0.f)
 	{
 		/*CALCULATE EXACT DAMAGE*/
-		/*Check weaknesses, resistances and immunities*/
 		const float AttackTypeDefense = AttackDefenses[static_cast<int32>(InAttackType)];
 		const float MagicTypeDefense = MagicDefenses[static_cast<int32>(InElementType)];
 		
@@ -194,8 +193,8 @@ void UTPCombatComponent::TakeHit(float InDamage, float InForce, FVector InForceD
 			if (CurrentlyUsedAbility != nullptr)
 			{
 				UAnimMontage* AbilityMontage = CurrentlyUsedAbility->GetAbilityMontage(this);
-				check(AbilityMontage);
-				if (CharOwner->GetMesh()->GetAnimInstance()->Montage_IsPlaying(AbilityMontage))
+
+				if (AbilityMontage && CharOwner->GetMesh()->GetAnimInstance()->Montage_IsPlaying(AbilityMontage))
 				{
 					CharOwner->GetMesh()->GetAnimInstance()->Montage_Stop(0.2f, AbilityMontage);
 				}
@@ -248,8 +247,8 @@ bool UTPCombatComponent::TryUseAbility(TSubclassOf<UTPAbility> UsedAbilityClass)
 
 void UTPCombatComponent::EquipItem(TSubclassOf<ATPEquipmentBase> EquipClass, const FName& EquipSlotName)
 {
+	check(CharOwner);
 	FEquipmentSlot* UsedSlotPtr = CharacterEquipment.Find(EquipSlotName);
-
 	if (UsedSlotPtr)
 	{
 		FEquipmentSlot& UsedSlot = *UsedSlotPtr;
@@ -258,23 +257,19 @@ void UTPCombatComponent::EquipItem(TSubclassOf<ATPEquipmentBase> EquipClass, con
 		FActorSpawnParameters EquipSpawnParams;
 		EquipSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		USkeletalMeshComponent* EquipMesh = GetEquipmentMesh(EquipSlotName);
-		if (EquipMesh)
+		ATPEquipmentBase* NewEquipped = GetWorld()->SpawnActor<ATPEquipmentBase>(EquipClass,
+			CharOwner->GetMesh()->GetSocketTransform(UsedSlot.EquipmentSocket,
+				ERelativeTransformSpace::RTS_World), EquipSpawnParams);
+
+		if (ATPArmorBase* EquipArmor = Cast<ATPArmorBase>(NewEquipped))
 		{
-			ATPEquipmentBase* NewEquipped = GetWorld()->SpawnActor<ATPEquipmentBase>(EquipClass,
-				EquipMesh->GetSocketTransform(UsedSlot.EquipmentSocket,
-					ERelativeTransformSpace::RTS_World), EquipSpawnParams);
-
-			if (ATPArmorBase* EquipArmor = Cast<ATPArmorBase>(NewEquipped))
-			{
-				EquipArmor->ArmorMesh->SetMasterPoseComponent(EquipMesh);
-			}
-
-			NewEquipped->AttachToComponent(EquipMesh, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false), UsedSlot.EquipmentSocket);
-			NewEquipped->BeEquipped(this, EquipSlotName);
-			
-			UsedSlot.EquipmentItem = NewEquipped;
+			EquipArmor->ArmorMesh->SetMasterPoseComponent(CharOwner->GetMesh());
 		}
+
+		NewEquipped->AttachToComponent(CharOwner->GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false), UsedSlot.EquipmentSocket);
+		NewEquipped->BeEquipped(this, EquipSlotName);
+
+		UsedSlot.EquipmentItem = NewEquipped;
 	}
 	else
 	{
@@ -336,17 +331,6 @@ ATPEquipmentBase* UTPCombatComponent::GetEquippedItemBySocket(const FName& Equip
 			return ObservedSlot.Value.EquipmentItem;
 		}
 	}
-	return nullptr;
-}
-
-USkeletalMeshComponent* UTPCombatComponent::GetEquipmentMesh(const FName& EquipSlot)
-{
-	/*#TODO: Instead of using GetMesh() from the character, search for a skeletal mesh component in the owner - this way, any actor with a
-	combat component will be able to have armor. Even better, use a delegate the owner will bound to to return a specific mesh.
-	That way, any actor with a combat component will be able to have any amount of armor on any amount of meshes.*/
-
-	ACharacter* CombatantChar = Cast<ACharacter>(GetOwner());
-	if (CombatantChar) { return CombatantChar->GetMesh(); }
 	return nullptr;
 }
 
@@ -458,28 +442,27 @@ void UTPCombatComponent::SetCanUseAbilityInGeneral(bool bNewCanUse)
 
 void UTPCombatComponent::ParryAttack(const FName& ParriedSlot, EWeaponType InWT)
 {
-	ATPCharacter* TPCOwner = GetOwnerAsTP();
-	check (TPCOwner);
+	check(CharOwner);
+	check (CurrentlyUsedAbility);
 
-	UAnimMontage* ParryMontage = TPCOwner->GetParryMontage(ParriedSlot, InWT);
+	UAnimMontage* ParryMontage = CharOwner->GetParryMontage(CurrentlyUsedAbility->GetClass());
 
 	bIsParry = true;
 	ParryMontageEndDel.BindUObject(this, &UTPCombatComponent::OnParryMontageEnd);
-	TPCOwner->GetMesh()->GetAnimInstance()->Montage_Play(ParryMontage);
-	TPCOwner->GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(ParryMontageEndDel, ParryMontage);
+	CharOwner->GetMesh()->GetAnimInstance()->Montage_Play(ParryMontage);
+	CharOwner->GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(ParryMontageEndDel, ParryMontage);
 }
 
 void UTPCombatComponent::BreakBlock(const FName& BrokenSlot, EWeaponType InWT)
 {
-	ATPCharacter* TPCOwner = GetOwnerAsTP();
-	check(TPCOwner);
+	check(CharOwner);
 
-	UAnimMontage* BreakMontage = TPCOwner->GetBlockBreakMontage(BrokenSlot, InWT);
+	UAnimMontage* BreakMontage = CharOwner->GetBlockBreakMontage(BrokenSlot, InWT);
 
 	bIsBreak = true;
 	BreakMontageEndDel.BindUObject(this, &UTPCombatComponent::OnBreakMontageEnd);
-	TPCOwner->GetMesh()->GetAnimInstance()->Montage_Play(BreakMontage);
-	TPCOwner->GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(BreakMontageEndDel, BreakMontage);
+	CharOwner->GetMesh()->GetAnimInstance()->Montage_Play(BreakMontage);
+	CharOwner->GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(BreakMontageEndDel, BreakMontage);
 
 	for (TPair<FName, FEquipmentSlot> ObservedEquipment : CharacterEquipment)
 	{
