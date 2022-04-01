@@ -407,11 +407,13 @@ void UTPCombatComponent::OnAbilityMontageEnd(UAnimMontage* Montage, bool bInterr
 void UTPCombatComponent::OnParryMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
 	bIsParry = false;
+	CharOwner->GetTPCharacterMovement()->RestoreOriginalWalkingSpeed();
 }
 
 void UTPCombatComponent::OnBreakMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
 	bIsBreak = false;
+	CharOwner->GetTPCharacterMovement()->RestoreOriginalWalkingSpeed();
 }
 
 void UTPCombatComponent::EndAbilityState(UTPAbility* InAbility, bool bInterrupted)
@@ -428,7 +430,7 @@ void UTPCombatComponent::EndAbilityState(UTPAbility* InAbility, bool bInterrupte
 		}
 		if (InAbility == CurrentlyUsedAbility)
 		{
-			CharOwner->GetTPCharacterMovement()->RestoreOriginalWalkingSpeed();
+			if (!bIsParry && !bIsBreak) { CharOwner->GetTPCharacterMovement()->RestoreOriginalWalkingSpeed(); }
 			CurrentlyUsedAbility = nullptr;
 		}
 		UsedAbilities.Remove(InAbility->GetAbilityMontage(this));
@@ -451,6 +453,7 @@ void UTPCombatComponent::ParryAttack(const FName& ParriedSlot, EWeaponType InWT)
 	ParryMontageEndDel.BindUObject(this, &UTPCombatComponent::OnParryMontageEnd);
 	CharOwner->GetMesh()->GetAnimInstance()->Montage_Play(ParryMontage);
 	CharOwner->GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(ParryMontageEndDel, ParryMontage);
+	CharOwner->GetTPCharacterMovement()->SetMaxMovementMultiplier(0.f);
 }
 
 void UTPCombatComponent::BreakBlock(const FName& BrokenSlot, EWeaponType InWT)
@@ -472,6 +475,7 @@ void UTPCombatComponent::BreakBlock(const FName& BrokenSlot, EWeaponType InWT)
 			ObservedWeapon->SetWeaponBlocking(false);
 		}
 	}
+	CharOwner->GetTPCharacterMovement()->SetMaxMovementMultiplier(0.f);
 }
 
 void UTPCombatComponent::SetCurrentValues()

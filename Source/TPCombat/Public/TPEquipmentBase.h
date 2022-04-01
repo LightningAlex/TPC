@@ -26,7 +26,7 @@ public:
 
 private:
 	FName AttachedToSlot;
-	UPROPERTY()
+	UPROPERTY(Transient)
 	ATPCharacter* EquipmentHolder;
 
 public:	

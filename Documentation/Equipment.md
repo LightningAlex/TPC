@@ -1,7 +1,7 @@
 # Equipment
 ## Description
 The equipment system allows any character to equip any amount of equipment items. Equipment items encompass armaments (weapons and shields), armor and attachments (like rings and talismans). 
-Every equipment item can increase/decrease any combat stats (see stats for more info).
+Every equipment item can increase/decrease any combat stats (see `CombatStats` for more info).
 > NOTE: In the future, we'd like to enable percentual increases/decreases
 
 ## Equipment slots
@@ -19,9 +19,14 @@ The attachment base class only has a static mesh component. It is meant for equi
 ### Armor base
 The armor base class has a skeletal mesh component. When equipped, the appropriate equipment mesh (see below) is set as the master pose component. While it can be attached to a socket (see slots), it isn't recommended in any circumstance.
 
-### Weapons
+### Weapon base
 Weapons have a static mesh component that represents them visually. While equipped, collision on the static mesh should be turned off. Weapons have an array called `WeaponColliders`. It's an array of structs called `FWeaponCollider`. The struct allows a weapon to have multiple damage-dealing volumes (shape components) that can be (in)active during specific parts of any animation. The struct itself consists only of a name and a pointer to a shape component.
 
 Weapons *must* initialize this array in their constructor. To activate a weapon during an animation, the notify state `ActiveWeaponState` should be used. The weapon slot, the colliders to activate and the attack type should be set in this state.
 
-## Relevant functions
+The animation for attack abilities will most likely be determined by the carried weapon (see `Abilities` for more info). The function `GetAbilityMontage` in the ability can be overridden in blueprints to use whatever condition. It is recommended that unarmed characters use an "unarmed weapon", i.e. a blueprint class that derives from weapon base, with no mesh and a single collider. It isn't necessary, but this approach makes using all weapon system features possible.
+Weapons can also have an element imbued into them. This will affect damage calculations. See `CombatStats` for more info.
+
+#### Blocking and parrying
+Any weapon can be used to block attacks. It's ability to block is dictated by the `MaxWeaponPoise` variable. If a block is successful, the character doesn't take any damage. If it fails, a block break animation is played, during which the character is immovable and can't use any abilities, leaving them completely vulnerable for new attacks.
+If, during an attack animation, the character's weapon overlaps with another character's weapon that is currently in blocking mode, a calculation is made to see if the block is successful. If the block is successful, the attacker is parried, causing a parry animation to be played on the attacker. The character becomes immovable and unable to use any abilities during the parry animation. Check `CombatStats` to see details on the parry/break calculations.

@@ -43,16 +43,20 @@ public:
 	TArray<FWeaponCollider> WeaponColliders;
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
 	EMagicElementType WeaponElement;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
 	EWeaponType WeaponType;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float WeaponForce;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
+	float WeaponBaseForce;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Block")
 	float MaxWeaponPoise;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Block")
 	float WeaponPoiseRecoveryRate;
+	UPROPERTY(EditDefaultsOnly, Category = "Block")
+	float AttackBlockMultipliers[EAttackType::MAX];
+	UPROPERTY(EditDefaultsOnly, Category = "Block")
+	float MagicBlockMultipliers[EMagicElementType::MAX];
 
 private:
 	EAttackType CurrentAttackType;
@@ -86,7 +90,8 @@ public:
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE bool GetWeaponBlocking() const { return bWeaponBlocking; }
 
-	bool WeaponTakeHit(float InForce);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	bool WeaponTakeHit(EAttackType InAttackType, EMagicElementType InMagicType, float InForce);
 
 protected:
 	virtual void BeginPlay() override;

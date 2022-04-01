@@ -23,5 +23,7 @@ enum class EMagicElementType : uint8
 	MET_WATER			UMETA(DisplayName = "Water"),
 	MET_ICE				UMETA(DisplayName = "Ice"),
 	MET_EARTH			UMETA(DisplayName = "Earth"),
+	MET_LIGHT			UMETA(DisplayName = "Light"),
+	MET_DARKNESS		UMETA(DisplayName = "Darkness"),
 	MAX					UMETA(Hidden)
 };

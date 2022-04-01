@@ -15,13 +15,23 @@ ATPWeaponBase::ATPWeaponBase()
 	:
 	Super(),
 	WeaponElement(EMagicElementType::MET_NONE),
-	WeaponForce(100.f),
+	WeaponBaseForce(100.f),
 	WeaponPoiseRecoveryRate(2.f)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
 	WeaponMesh->SetupAttachment(GetRootComponent());
+
+	for (int32 i = 0; i < static_cast<int32>(EAttackType::MAX); i++)
+	{
+		AttackBlockMultipliers[i] = 1.f;
+	}
+
+	for (int32 i = 0; i < static_cast<int32>(EMagicElementType::MAX); i++)
+	{
+		MagicBlockMultipliers[i] = (i == static_cast<int32>(WeaponElement) && i != 0) ? 3.f : 1.f;
+	}
 }
 
 void ATPWeaponBase::Tick(float DeltaTime)
@@ -100,12 +110,21 @@ void ATPWeaponBase::SetWeaponBlocking(bool bNewBlocking)
 	bWeaponBlocking = bNewBlocking;
 }
 
-bool ATPWeaponBase::WeaponTakeHit(float InForce)
+bool ATPWeaponBase::WeaponTakeHit_Implementation(EAttackType InAttackType, EMagicElementType InMagicType, float InForce)
 {
 	check (!GetWeaponBlocking()); // This function should never be called if the weapon isn't blocking!
 
-	CurrentWeaponPoise = FMath::Max(0.f, CurrentWeaponPoise - InForce);
+	const float AT_Value = AttackBlockMultipliers[static_cast<int32>(InAttackType)];
+	const float MT_Value = MagicBlockMultipliers[static_cast<int32>(InMagicType)];
 
+	if (AT_Value == 0.f || MT_Value == 0.f)
+	{
+		return false;
+	}
+
+	InForce /= (AT_Value * MT_Value);
+
+	CurrentWeaponPoise = FMath::Max(0.f, CurrentWeaponPoise - InForce);
 	return CurrentWeaponPoise > 0.f;
 }
 
@@ -133,10 +152,15 @@ void ATPWeaponBase::OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AA
 	{
 		return;
 	}
+
+	float FinalForceMultiplier = 1.f;
+	GetEquipmentHolder()->GetMesh()->GetAnimInstance()->GetCurveValue("ForceMultiplier", FinalForceMultiplier);
+	const float FinalForce = WeaponBaseForce * FinalForceMultiplier;
+
 	ATPWeaponBase* HitWeapon = Cast<ATPWeaponBase>(OtherActor);
 	if (HitWeapon && !DamagedActors.Contains(HitWeapon->GetEquipmentHolder()) && HitWeapon->GetWeaponBlocking())
 	{
-		if (HitWeapon->WeaponTakeHit(WeaponForce))
+		if (HitWeapon->WeaponTakeHit(CurrentAttackType, WeaponElement, FinalForce))
 		{
 			GetEquipmentHolder()->TPCombatComponent->ParryAttack(GetAttachedToSlot(), WeaponType);
 			return;
@@ -149,14 +173,14 @@ void ATPWeaponBase::OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AA
 	else if (ATPCharacter* HitChar = Cast<ATPCharacter>(OtherActor))
 	{
 		FVector HitDir = (SweepResult.ImpactPoint - OverlappedComponent->GetComponentLocation()).GetSafeNormal(0.001f);
-		HitChar->TPCombatComponent->TakeHit(GetEquipmentHolder()->TPCombatComponent->GetFullValue(ECombatValue::ECV_ATTACK), WeaponForce,
+		HitChar->TPCombatComponent->TakeHit(GetEquipmentHolder()->TPCombatComponent->GetFullValue(ECombatValue::ECV_ATTACK), FinalForce,
 			HitDir, CurrentAttackType, WeaponElement, SweepResult);
 	}
 	else
 	{
 		/*This needs reworking!*/
 		FVector HitFromDir = (OtherComp->GetComponentLocation() - OverlappedComponent->GetComponentLocation()).GetSafeNormal();
-		OtherComp->AddImpulse(HitFromDir * WeaponForce, NAME_None, true);
+		OtherComp->AddImpulse(HitFromDir * FinalForce, NAME_None, true);
 		UGameplayStatics::ApplyPointDamage(OtherActor, GetEquipmentHolder()->TPCombatComponent->GetFullValue(ECombatValue::ECV_ATTACK), 
 			HitFromDir, SweepResult, GetEquipmentHolder()->GetController(), this, UDamageType::StaticClass());
 	}
