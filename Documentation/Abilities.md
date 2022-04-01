@@ -75,8 +75,12 @@ All listed variables are editable per individual ability.
 ### Ability Stamina Cost
 **Type:** Float;
 
-**Usage:** Reduces the stamina of the character using this ability by the amount stored in this variable. If the character doesn't have enough stamina, the ability isn't usable;
->NOTE: This might be changed so the character can use the ability if they don't have enough stamina - using the ability will simply take away all remaining stamina (like in Dark Souls). Best to code in both scenarios and expose the option of which one to use in developer settings.
+**Usage:** Reduces the stamina of the character using this ability by the amount stored in this variable. 
+
+### Ability Stamina Cost Behavior
+**Type:** EAbilityStaminaBehavior
+
+**Usage:** This enum can have the following values: `RequiredAmount`, `DrainToZero`, `DrainBelowZero`. If the value is `RequiredAmount`, it means that the ability won't be usable if the character doesn't have at least the same amount of stamina as `AbilityStaminaCost`. If the value is `DrainToZero`, it means the ability will be usable as long as the character has more than 0 stamina. If the character has more than 0, but less than `AbilityStaminaCost`, the ability will be usable, and it will set the character's stamina to 0. If the value is `DrainBelowZero`, the ability will be usable as long as the character has more than 0 stamina. If the character has more than 0, but less than `AbilityStaminaCost`, the ability will be usable, and it will set the character's stamina below 0 (Current - Cost). This means that the time for the stamina to recover to above 0 will be longer.
 
 ### Movement Speed Multiplier
 **Type:** Float;
