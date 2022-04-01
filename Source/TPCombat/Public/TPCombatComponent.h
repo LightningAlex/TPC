@@ -128,7 +128,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ChangeMana(float InChange, bool bReplace = false, bool bBroadcast = true);
 	UFUNCTION(BlueprintCallable)
-	void ChangeStamina(float InChange, bool bReplace = false, bool bBroadcast = true);
+	void ChangeStamina(float InChange, bool bReplace = false, bool bBroadcast = true, bool bAllowBelowZero = false);
 
 	UFUNCTION(BlueprintCallable)
 	bool TryUseAbility(TSubclassOf<UTPAbility> UsedAbilityClass);
@@ -199,4 +199,5 @@ private:
 	void EndAbilityState(UTPAbility* InAbility, bool bInterrupted);
 	void UnequipItem(ATPEquipmentBase* ItemToUnequip, bool bDestroy = true);
 	void UnequipItem(FEquipmentSlot& SlotToUnequip, bool bDestroy = true);
+	bool CheckStaminaRequirement(EAbilityStaminaBehavior InBehavior, float InCost);
 };

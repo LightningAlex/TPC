@@ -234,7 +234,7 @@ bool UTPCombatComponent::TryUseAbility(TSubclassOf<UTPAbility> UsedAbilityClass)
 		}
 		if (CurrentlyUsedAbility->AbilityStaminaCost > 0.f)
 		{
-			ChangeStamina(CurrentlyUsedAbility->AbilityStaminaCost);
+			ChangeStamina(CurrentlyUsedAbility->AbilityStaminaCost, false, true, CurrentlyUsedAbility->AbilityStaminaBehavior == EAbilityStaminaBehavior::ASB_DRAINBELOWZERO);
 		}
 		UsedAbilities.Add(UsedAbilityMontage, CurrentlyUsedAbility);
 
@@ -348,8 +348,8 @@ bool UTPCombatComponent::CanUseAbility(TSubclassOf<UTPAbility> TriedAbilityClass
 
 	if (bCanUseAbilityInGeneral && !bIsParry && !bIsBreak && TriedAbilityClass.GetDefaultObject()->AbilityHealthCost < GetCurrentHealth() &&
 		TriedAbilityClass.GetDefaultObject()->AbilityManaCost < GetCurrentMana() && !CharOwner->IsRagdoll() &&
-		TriedAbilityClass.GetDefaultObject()->AbilityStaminaCost < GetCurrentStamina() && !CharOwner->IsRecoveringFromRagdoll() &&
-		!AbilitiesOnCooldown.Contains(FAbilityCooldown(TriedAbilityClass.GetDefaultObject()->AbilityName)))
+		CheckStaminaRequirement(TriedAbilityClass.GetDefaultObject()->AbilityStaminaBehavior, TriedAbilityClass.GetDefaultObject()->AbilityStaminaCost) && 
+		!CharOwner->IsRecoveringFromRagdoll() && !AbilitiesOnCooldown.Contains(FAbilityCooldown(TriedAbilityClass.GetDefaultObject()->AbilityName)))
 	{
 		if (!CharOwner->GetTPCharacterMovement()->IsFalling() || TriedAbilityClass.GetDefaultObject()->bCanBeUsedInAir)
 		{
@@ -548,12 +548,25 @@ void UTPCombatComponent::ChangeMana(float InChange, bool bReplace /*= false*/, b
 	}
 }
 
-void UTPCombatComponent::ChangeStamina(float InChange, bool bReplace /*= false*/, bool bBroadcast /*= true*/)
+void UTPCombatComponent::ChangeStamina(float InChange, bool bReplace /*= false*/, bool bBroadcast /*= true*/, bool bAllowBelowZero /*= false*/)
 {
 	float OldAmount = CurrentCombatStamina;
-	CurrentCombatStamina = FMath::Clamp(InChange + (bReplace ? 0.f : CurrentCombatStamina), 0.f, GetFullValue(ECombatValue::ECV_STAMINA));
+	if (!bAllowBelowZero)
+	{
+		CurrentCombatStamina = FMath::Clamp(InChange + (bReplace ? 0.f : CurrentCombatStamina), 0.f, GetFullValue(ECombatValue::ECV_STAMINA));
+	}
+	else
+	{
+		CurrentCombatStamina = FMath::Max(InChange + (bReplace ? 0.f : CurrentCombatStamina), GetFullValue(ECombatValue::ECV_STAMINA));
+	}
 	if (bBroadcast)
 	{
 		OnCombatStaminaChanged.Broadcast(CurrentCombatStamina, OldAmount, GetStaminaNormal());
 	}
+}
+
+bool UTPCombatComponent::CheckStaminaRequirement(EAbilityStaminaBehavior InBehavior, float InCost)
+{
+	if (GetCurrentStamina() == 0.f) { return false; }
+	return (GetCurrentStamina() > InCost || InBehavior != EAbilityStaminaBehavior::ASB_REQUIREDAMOUNT);
 }

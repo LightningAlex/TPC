@@ -6,6 +6,7 @@
 #include "UObject/NoExportTypes.h"
 #include "TPAttackValues.h"
 #include "GameplayTagContainer.h"
+#include "TPAbilityDefaults.h"
 #include "TPAbility.generated.h"
 
 class UAnimMontage;
@@ -33,6 +34,8 @@ public:
 	float AbilityManaCost;
 	UPROPERTY(EditDefaultsOnly, Category = "Costs")
 	float AbilityStaminaCost;
+	UPROPERTY(EditDefaultsOnly, Category = "Costs")
+	EAbilityStaminaBehavior AbilityStaminaBehavior;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Usage")
 	float MovementSpeedMultiplier;

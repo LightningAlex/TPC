@@ -6,12 +6,14 @@
 #include "Engine/DeveloperSettings.h"
 #include "TPDeveloperSettings.generated.h"
 
-/**
- * 
- */
-UCLASS()
+UCLASS(config=Engine, defaultconfig, meta=(DisplayName="TP Combat Settings"), BlueprintType)
 class TPCOMBAT_API UTPDeveloperSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 	
+public:
+	UPROPERTY(EditAnywhere, Config)
+	FName WeaponForceCurveName;
+	UPROPERTY(EditAnywhere, Config)
+	FName AbilitySpeedCurveName;
 };
