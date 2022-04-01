@@ -11,6 +11,7 @@
 #include "AbilityCooldown.h"
 #include "ChainAbilityData.h"
 #include "EquipmentSlot.h"
+#include "TPAbilityDefaults.h"
 #include "TPCombatComponent.generated.h"
 
 class UCurveFloat;

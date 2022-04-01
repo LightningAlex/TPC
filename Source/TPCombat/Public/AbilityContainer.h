@@ -4,6 +4,8 @@
 
 class UTPAbility;
 
+/*NOTE: THIS STRUCT ISN'T USED ANYMORE AND CAN BE SAFELY DELETED!*/
+
 USTRUCT(BlueprintType)
 struct TPCOMBAT_API FAbilityContainer
 {

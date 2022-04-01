@@ -14,6 +14,7 @@ class TPCOMBAT_API UTPDeveloperSettings : public UDeveloperSettings
 public:
 	UPROPERTY(EditAnywhere, Config)
 	FName WeaponForceCurveName;
-	UPROPERTY(EditAnywhere, Config)
-	FName AbilitySpeedCurveName;
+
+public:
+	UTPDeveloperSettings();
 };

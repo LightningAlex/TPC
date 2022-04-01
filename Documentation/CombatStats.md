@@ -83,9 +83,7 @@ When the function is called, the passed damage will go through the following cha
 ### Knockback calculations
 > IMPORTANT: This entire system will likely be changed, to enable knockback animations as well as ragdoll, depending on the amount of accumulated knockback!
 
-Every attack has a force behind it. In the case of spells, a custom force should be used, when calling the `TakeHit` function. In the case of weapons, that force is determined by a variable called `WeaponBaseForce`. The weapon base force can further be modified in attack animations, by adding an animation curve called "ForceMultiplier". If this curve doesn't exist, then only `WeaponBaseForce` will be used. 
-
-> NOTE: In the future, we'd like to control the curve name by a variable set in developer settings! 
+Every attack has a force behind it. In the case of spells, a custom force should be used, when calling the `TakeHit` function. In the case of weapons, that force is determined by a variable called `WeaponBaseForce`. The weapon base force can further be modified in attack animations, by adding an animation curve. The name of the curve should match the name set in the project's developer settings (`TPCombatSettings -> WeaponForceCurveName`). If this curve doesn't exist, then only `WeaponBaseForce` will be used. 
 
 Every time a character is hit with a force greater than zero, the force accumulates into a float variable called `AccumulatedKnockback`. This variable is also reduced in the Tick function, by an amount specified with the variable `KnockbackForceReductionRate`. If the accumulated knockback gets bigger than the full poise value * `Knockbacktreshold` (editable), the function `StartRagdoll` is called on the character. 
 Depending on the force and the poise, the duration of the knockback is calculated (it will never go above `KnockbackMaxDuration`). If the character is launched in the air, the duration doesn't start ticking until the character lands.

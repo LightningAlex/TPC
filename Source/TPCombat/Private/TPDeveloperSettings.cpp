@@ -3,3 +3,7 @@
 
 #include "TPDeveloperSettings.h"
 
+UTPDeveloperSettings::UTPDeveloperSettings()
+	:WeaponForceCurveName("WeaponForceCurve")
+{
+}

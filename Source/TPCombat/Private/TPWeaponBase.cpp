@@ -10,6 +10,7 @@
 #include "TPCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Controller.h"
+#include "TPDeveloperSettings.h"
 
 ATPWeaponBase::ATPWeaponBase()
 	:
@@ -154,7 +155,12 @@ void ATPWeaponBase::OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AA
 	}
 
 	float FinalForceMultiplier = 1.f;
-	GetEquipmentHolder()->GetMesh()->GetAnimInstance()->GetCurveValue("ForceMultiplier", FinalForceMultiplier);
+
+	const UTPDeveloperSettings* TPDS = GetDefault<UTPDeveloperSettings>();
+	if (TPDS)
+	{
+		GetEquipmentHolder()->GetMesh()->GetAnimInstance()->GetCurveValue(TPDS->WeaponForceCurveName, FinalForceMultiplier);
+	}
 	const float FinalForce = WeaponBaseForce * FinalForceMultiplier;
 
 	ATPWeaponBase* HitWeapon = Cast<ATPWeaponBase>(OtherActor);
