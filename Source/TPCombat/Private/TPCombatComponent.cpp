@@ -39,7 +39,6 @@ void UTPCombatComponent::BeginPlay()
 	SetCurrentValues();
 }
 
-// Called every frame
 void UTPCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -115,9 +114,9 @@ int32 UTPCombatComponent::GetCurrentCombatLevel()
 	return RetVal;
 }
 
-bool UTPCombatComponent::CanLevelUp()
+bool UTPCombatComponent::CanLevelUp() const
 {
-	return LevelExperienceCurve->GetFloatValue(static_cast<float>(GetCurrentCombatLevel())) > static_cast<float>(CurrentExperience);
+	return LevelExperienceCurve->GetFloatValue(static_cast<float>(GetCurrentCombatLevel())) < static_cast<float>(CurrentExperience);
 }
 
 void UTPCombatComponent::FullHeal()
@@ -185,6 +184,8 @@ void UTPCombatComponent::TakeHit(float InDamage, float InForce, FVector InForceD
 		InDamage += InDamage * FMath::RandRange(-0.05f, 0.05f);
 		ChangeHealth(FMath::Max(0.f, InDamage * (-1.f)));
 	}
+
+	/*TODO: Incorporate knockback system, use ragdoll if accumulated knockback greatly exceeds KnockbackTreshold*/
 	if (InForce > 0.f)
 	{
 		AccumulatedKnockback += InForce;
@@ -567,6 +568,6 @@ void UTPCombatComponent::ChangeStamina(float InChange, bool bReplace /*= false*/
 
 bool UTPCombatComponent::CheckStaminaRequirement(EAbilityStaminaBehavior InBehavior, float InCost)
 {
-	if (GetCurrentStamina() == 0.f) { return false; }
+	if (GetCurrentStamina() <= 0.f) { return false; }
 	return (GetCurrentStamina() > InCost || InBehavior != EAbilityStaminaBehavior::ASB_REQUIREDAMOUNT);
 }

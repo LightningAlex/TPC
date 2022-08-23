@@ -118,7 +118,7 @@ public:
 	UFUNCTION(BlueprintPure)
 	int32 GetCurrentCombatLevel();
 	UFUNCTION(BlueprintPure)
-	bool CanLevelUp();
+	bool CanLevelUp() const;
 
 	UFUNCTION(BlueprintCallable)
 	void FullHeal();
