@@ -24,4 +24,4 @@ Furthermore, the following variables need to be set up:
 - Mesh Forward Inverted: Boolean determining whether the above mentioned mesh forward vector should be inverted (i.e. -Y instead of Y);
 - Skeleton Root Child Inverted: Same as `MeshForwardInverted`, but for the skeleton root child;
 - Disable Recovery: If this is true, a character can never recover from ragdolling;
-> Author's note: I have coded the ragdoll system long before writing this documentation - I can't figure out why the last variable is needed. It is not blueprintwriteable. It's value isn't changed anywhere, not even when a character's health reaches 0. 
+> Author's note: I have coded the ragdoll system long before writing this documentation - I can't figure out why the last variable is needed. It is not blueprintwriteable. Its value isn't changed anywhere, not even when a character's health reaches 0. 
